@@ -1,30 +1,40 @@
 package fileUtil
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-func CreateOutputFile(inputFileName string, ext string, dirName string) (*os.File, string, error) {
+func CreateOutputFile(inputFileName string, format string, outDir string) (*os.File, string, error) {
 
-	fileName := strings.TrimSuffix(filepath.Base(inputFileName), filepath.Ext(inputFileName)) + ext
+	err := os.MkdirAll(outDir, os.ModePerm)
 
-	outputPath := filepath.Join(dirName, fileName)
+	if err != nil {
 
-	f, err := createFile(outputPath)
+		return nil, "", fmt.Errorf("cannot create output directory: %w", err)
 
-	return f, outputPath, err
-
-}
-
-func createFile(name string) (*os.File, error) {
-
-	_, e := os.Stat(name)
-
-	if e == nil {
-		return nil, os.ErrExist
 	}
 
-	return os.Create(name)
+	baseName := filepath.Base(inputFileName)
+
+	nameWithoutExt := strings.TrimSuffix(baseName, filepath.Ext(baseName))
+
+	ext := strings.TrimPrefix(format, ".")
+
+	outputFileName := nameWithoutExt + "." + ext
+
+	outputPath := filepath.Join(outDir, outputFileName)
+
+	outputFile, err := os.Create(outputPath)
+
+	if err != nil {
+
+		return nil, "", fmt.Errorf("cannot create output file: %w", err)
+
+	}
+
+	return outputFile, outputPath, nil
+
 }

@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
+	"log"
 	"os"
-	"qparser/models/file"
+	"path/filepath"
 	giftParser "qparser/parsers/gift"
 	giftUtils "qparser/parsers/gift/utils"
 	fileUtil "qparser/utils/file"
@@ -13,37 +15,47 @@ import (
 
 func main() {
 
-	if len(os.Args) < 2 {
+	dir := flag.String("inputdir", "./input", "directory with input files")
 
-		fmt.Fprintln(os.Stderr, file.GetErrStdInMustProvideAtLeastOneArg())
+	format := flag.String("format", "md", "file format (no dot)")
 
-		return
+	outDir := flag.String("outdir", "results", "output directory")
 
-	}
+	verbose := flag.Bool("verbose", false, "detailed output")
 
-	err := os.MkdirAll(giftUtils.GetOutputDirName(), os.ModePerm)
+	flag.Parse()
+
+	files, err := filepath.Glob(filepath.Join(*dir, "*."+*format))
 
 	if err != nil {
 
-		fmt.Println("err -> ", err)
-
-		return
+		log.Fatal("Error while seeking for files:", err.Error())
 
 	}
 
-	for _, inputFileName := range os.Args[1:] {
+	if len(files) == 0 {
 
-		if err := convertFile(inputFileName); err != nil {
+		log.Fatalf("❌ No file. %s found in %s", *format, *dir)
+
+	}
+
+	for _, inputFileName := range files {
+
+		if *verbose {
+
+			fmt.Printf("📄 Elaboro file: %s\n", inputFileName)
+
+		}
+
+		if err := convertFile(inputFileName, *format, *outDir, *verbose); err != nil {
 
 			fmt.Fprintf(os.Stderr, "failed to convert %s: %v\n", inputFileName, err)
 
 		}
-
 	}
-
 }
 
-func convertFile(inputFileName string) error {
+func convertFile(inputFileName string, format string, outDir string, verbose bool) error {
 
 	inputFile, err := os.Open(inputFileName)
 
@@ -55,7 +67,7 @@ func convertFile(inputFileName string) error {
 
 	defer inputFile.Close()
 
-	outputFile, outputPath, err := fileUtil.CreateOutputFile(inputFileName, giftUtils.GetGiftExt(), giftUtils.GetOutputDirName())
+	outputFile, outputPath, err := fileUtil.CreateOutputFile(inputFileName, format, outDir)
 
 	if err != nil {
 
@@ -71,11 +83,19 @@ func convertFile(inputFileName string) error {
 
 	if err := processInput(scanner, outputFile); err != nil {
 
-		return err
+		return fmt.Errorf("error during input processing: %w", err)
 
 	}
 
-	fmt.Printf("done. converted %s -> %s\n", inputFileName, outputPath)
+	if verbose {
+
+		fmt.Printf("✅ %s -> %s\n", inputFileName, outputPath)
+
+	} else {
+
+		fmt.Printf("converted %s -> %s\n", inputFileName, outputPath)
+
+	}
 
 	return nil
 }
