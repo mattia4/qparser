@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
+	log "qparser/logger"
 	giftParser "qparser/parsers/gift"
 	giftUtils "qparser/parsers/gift/utils"
 	fileUtil "qparser/utils/file"
@@ -23,39 +23,51 @@ func main() {
 
 	verbose := flag.Bool("verbose", false, "detailed output")
 
+	logger := log.NewLogger(*verbose)
+
 	flag.Parse()
+
+	info, err := os.Stat(*dir)
+
+	if err != nil {
+
+		logger.Fatal("Directory does not exist: %s", err)
+
+	}
+
+	if !info.IsDir() {
+
+		logger.Fatal("Path is not a directory")
+
+	}
 
 	files, err := filepath.Glob(filepath.Join(*dir, "*."+*format))
 
 	if err != nil {
 
-		log.Fatal("Error while seeking for files:", err.Error())
+		logger.Fatal("Error while seeking for files: %s", err.Error())
 
 	}
 
 	if len(files) == 0 {
 
-		log.Fatalf("❌ No file. %s found in %s", *format, *dir)
+		logger.Fatal("No file. %s found in %s", *format, *dir)
 
 	}
 
 	for _, inputFileName := range files {
 
-		if *verbose {
+		logger.Info("Processing file: %s", inputFileName)
 
-			fmt.Printf("📄 Elaboro file: %s\n", inputFileName)
+		if err := convertFile(logger, inputFileName, *format, *outDir); err != nil {
 
-		}
-
-		if err := convertFile(inputFileName, *format, *outDir, *verbose); err != nil {
-
-			fmt.Fprintf(os.Stderr, "failed to convert %s: %v\n", inputFileName, err)
+			logger.Error("failed to convert %s: %v", inputFileName, err)
 
 		}
 	}
 }
 
-func convertFile(inputFileName string, format string, outDir string, verbose bool) error {
+func convertFile(logger *log.Logger, inputFileName string, format string, outDir string) error {
 
 	inputFile, err := os.Open(inputFileName)
 
@@ -87,15 +99,7 @@ func convertFile(inputFileName string, format string, outDir string, verbose boo
 
 	}
 
-	if verbose {
-
-		fmt.Printf("✅ %s -> %s\n", inputFileName, outputPath)
-
-	} else {
-
-		fmt.Printf("converted %s -> %s\n", inputFileName, outputPath)
-
-	}
+	logger.Success("%s -> %s", inputFileName, outputPath)
 
 	return nil
 }
