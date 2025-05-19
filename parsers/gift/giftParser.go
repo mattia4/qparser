@@ -29,7 +29,7 @@ func ExtractCodeBlock(scanner *bufio.Scanner) string {
 			break
 
 		}
-
+		// TODO change
 		if strings.Contains(line, "{") {
 
 			line = strings.ReplaceAll(line, "{", "\\{")
@@ -39,6 +39,18 @@ func ExtractCodeBlock(scanner *bufio.Scanner) string {
 		if strings.Contains(line, "}") {
 
 			line = strings.ReplaceAll(line, "}", "\\}")
+
+		}
+
+		if strings.Contains(line, "=") {
+
+			line = strings.ReplaceAll(line, "=", "\\=")
+
+		}
+
+		if strings.Contains(line, ":") {
+
+			line = strings.ReplaceAll(line, ":", "\\:")
 
 		}
 
