@@ -133,7 +133,13 @@ func processInput(scanner *bufio.Scanner, file *os.File) error {
 
 		if giftUtils.IsAnswer(line) {
 
-			answerBlock := giftParser.ExtractAnswerBlock(scanner)
+			answerBlock, err := giftParser.ExtractAnswerBlock(scanner, line)
+
+			if err != nil {
+
+				return err
+
+			}
 
 			if codeBlock == "" {
 
@@ -145,7 +151,7 @@ func processInput(scanner *bufio.Scanner, file *os.File) error {
 
 			}
 
-			fmt.Fprintln(file, "}")
+			fmt.Fprint(file, "}\n\n")
 
 			continue
 		}

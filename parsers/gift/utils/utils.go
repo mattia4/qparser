@@ -42,11 +42,7 @@ func MdFileGetTopic(line string) (string, error) {
 
 func ParseMdFileAnswerRow(line string) (giftAnswer.Answer, error) {
 
-	isAnswerCorrect := strings.Contains(line, "- [x]") || strings.Contains(line, "- [X]")
-
-	isAnswerIncorrect := strings.Contains(line, "- [ ]")
-
-	checkAnswer := (isAnswerCorrect && !isAnswerIncorrect)
+	checkAnswer := IsCorrectAnswer(line) && !IsIncorrectAnswer(line)
 
 	answerText := strings.SplitN(line, "]", 2)[1]
 
@@ -54,11 +50,31 @@ func ParseMdFileAnswerRow(line string) (giftAnswer.Answer, error) {
 		return giftAnswer.Answer{}, errors.New("parse error")
 	}
 
-	return giftAnswer.Answer{
+	ans := giftAnswer.Answer{
 		Text:      answerText,
 		IsCorrect: checkAnswer,
 		Valid:     true,
-	}, nil
+	}
+
+	if strings.Contains(ans.Text, "_{") {
+
+		ans.Text = ParseMathSymbol(ans.Text)
+
+	}
+
+	ans.Text = strings.ReplaceAll(ans.Text, "$", "")
+
+	if ans.IsCorrect {
+
+		ans.Text = "=" + strings.Trim(ans.Text, " ")
+
+	} else {
+
+		ans.Text = "~" + strings.Trim(ans.Text, " ")
+
+	}
+
+	return ans, nil
 
 }
 

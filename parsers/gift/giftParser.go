@@ -30,6 +30,18 @@ func ExtractCodeBlock(scanner *bufio.Scanner) string {
 
 		}
 
+		if strings.Contains(line, "{") {
+
+			line = strings.ReplaceAll(line, "{", "\\{")
+
+		}
+
+		if strings.Contains(line, "}") {
+
+			line = strings.ReplaceAll(line, "}", "\\}")
+
+		}
+
 		codeLines = append(codeLines, line)
 	}
 
@@ -39,9 +51,19 @@ func ExtractCodeBlock(scanner *bufio.Scanner) string {
 
 }
 
-func ExtractAnswerBlock(scanner *bufio.Scanner) string {
+func ExtractAnswerBlock(scanner *bufio.Scanner, firstLine string) (string, error) {
 
 	var codeLines []string
+
+	line, err := gift.ParseMdFileAnswerRow(firstLine)
+
+	if err != nil {
+
+		return "", nil
+
+	}
+
+	codeLines = append(codeLines, line.Text)
 
 	for scanner.Scan() {
 
@@ -57,25 +79,7 @@ func ExtractAnswerBlock(scanner *bufio.Scanner) string {
 
 		if err != nil {
 
-			fmt.Println("err ->: ", err.Error())
-
-		}
-
-		if strings.Contains(ans.Text, "_{") {
-
-			ans.Text = gift.ParseMathSymbol(ans.Text)
-
-		}
-
-		ans.Text = strings.ReplaceAll(ans.Text, "$", "")
-
-		if ans.IsCorrect {
-
-			ans.Text = "=" + strings.Trim(ans.Text, " ")
-
-		} else {
-
-			ans.Text = "~" + strings.Trim(ans.Text, " ")
+			return "", err
 
 		}
 
@@ -83,7 +87,8 @@ func ExtractAnswerBlock(scanner *bufio.Scanner) string {
 
 	}
 
-	return strings.Join(codeLines, "\n")
+	return strings.Join(codeLines, "\n"), nil
+
 }
 
 func ExtractQuestionBlock(line string) string {
