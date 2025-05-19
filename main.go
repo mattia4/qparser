@@ -19,6 +19,8 @@ func main() {
 
 	format := flag.String("format", "md", "file format (no dot)")
 
+	outFormat := flag.String("outFormat", "gift", "output file format (no dot)")
+
 	outDir := flag.String("outdir", "results", "output directory")
 
 	verbose := flag.Bool("verbose", false, "detailed output")
@@ -59,7 +61,7 @@ func main() {
 
 		logger.Info("Processing file: %s", inputFileName)
 
-		if err := convertFile(logger, inputFileName, *format, *outDir); err != nil {
+		if err := convertFile(logger, inputFileName, *outFormat, *outDir); err != nil {
 
 			logger.Error("failed to convert %s: %v", inputFileName, err)
 
@@ -67,7 +69,7 @@ func main() {
 	}
 }
 
-func convertFile(logger *log.Logger, inputFileName string, format string, outDir string) error {
+func convertFile(logger *log.Logger, inputFileName string, outFormat string, outDir string) error {
 
 	inputFile, err := os.Open(inputFileName)
 
@@ -79,7 +81,7 @@ func convertFile(logger *log.Logger, inputFileName string, format string, outDir
 
 	defer inputFile.Close()
 
-	outputFile, outputPath, err := fileUtil.CreateOutputFile(inputFileName, format, outDir)
+	outputFile, outputPath, err := fileUtil.CreateOutputFile(inputFileName, outFormat, outDir)
 
 	if err != nil {
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func CreateOutputFile(inputFileName string, format string, outDir string) (*os.File, string, error) {
+func CreateOutputFile(inputFileName string, outFormat string, outDir string) (*os.File, string, error) {
 
 	err := os.MkdirAll(outDir, os.ModePerm)
 
@@ -21,7 +21,7 @@ func CreateOutputFile(inputFileName string, format string, outDir string) (*os.F
 
 	nameWithoutExt := strings.TrimSuffix(baseName, filepath.Ext(baseName))
 
-	ext := strings.TrimPrefix(format, ".")
+	ext := strings.TrimPrefix(outFormat, ".")
 
 	outputFileName := nameWithoutExt + "." + ext
 
